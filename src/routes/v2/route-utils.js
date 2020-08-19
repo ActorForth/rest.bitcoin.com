@@ -59,6 +59,9 @@ function validateNetwork(addr) {
     // of the intended network.
     const cashAddr = Utils.toCashAddress(addr)
 
+    var addrIsTest = bitbox.Address.isRegTestAddress(cashAddr);
+    if (network === "regtest" && addrIsTest) return true;
+
     // Return true if the network and address both match testnet
     const addrIsTest = bitbox.Address.isTestnetAddress(cashAddr)
     if (network === "testnet" && addrIsTest) return true

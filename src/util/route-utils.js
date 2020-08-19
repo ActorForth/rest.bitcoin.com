@@ -73,6 +73,9 @@ class RouteUtils {
       // of the intended network.
       const cashAddr = this.bitbox.Address.toCashAddress(addr)
 
+      var addrIsTest = bitbox.Address.isRegTestAddress(cashAddr);
+      if (network === "regtest" && addrIsTest) return true;
+
       // Return true if the network and address both match testnet
       const addrIsTest = this.bitbox.Address.isTestnetAddress(cashAddr)
       if (network === "testnet" && addrIsTest) return true

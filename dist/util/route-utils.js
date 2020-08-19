@@ -61,9 +61,12 @@ var RouteUtils = /** @class */ (function () {
             // Convert the user-provided address to a cashaddress, for easy detection
             // of the intended network.
             var cashAddr = this.bitbox.Address.toCashAddress(addr);
+            var addrIsTest = bitbox.Address.isRegTestAddress(cashAddr);
+            if (network === "regtest" && addrIsTest_1)
+                return true;
             // Return true if the network and address both match testnet
-            var addrIsTest = this.bitbox.Address.isTestnetAddress(cashAddr);
-            if (network === "testnet" && addrIsTest)
+            var addrIsTest_1 = this.bitbox.Address.isTestnetAddress(cashAddr);
+            if (network === "testnet" && addrIsTest_1)
                 return true;
             // Return true if the network and address both match mainnet
             var addrIsMain = this.bitbox.Address.isMainnetAddress(cashAddr);
