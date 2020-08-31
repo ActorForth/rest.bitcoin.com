@@ -84,10 +84,9 @@ class Address {
             error: `Invalid BCH address. Double check your address is valid: ${thisAddress}`
           })
         }
-
         // Prevent a common user error. Ensure they are using the correct network address.
         const networkIsValid = _this.routeUtils.validateNetwork(
-          _this.bitbox.Address.toCashAddress(thisAddress)
+          thisAddress
         )
         if (!networkIsValid) {
           res.status(400)
@@ -117,6 +116,7 @@ class Address {
       // Attempt to decode the error message.
       const { msg, status } = _this.routeUtils.decodeError(err)
       if (msg) {
+        console.log("Attempt to decode the error message")
         res.status(status)
         return res.json({ error: msg })
       }
@@ -165,7 +165,7 @@ class Address {
 
         // Prevent a common user error. Ensure they are using the correct network address.
         const networkIsValid = _this.routeUtils.validateNetwork(
-          _this.bitbox.Address.toCashAddress(thisAddress)
+          thisAddress
         )
         if (!networkIsValid) {
           res.status(400)

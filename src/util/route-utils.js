@@ -7,8 +7,7 @@ const wlogger = require("./winston-logging")
 
 const util = require("util")
 util.inspect.defaultOptions = { depth: 1 }
-
-const BITBOX = require("slp-sdk")
+const BITBOX = require("bitbox-sdk").BITBOX
 const bitbox = new BITBOX()
 
 // let _this
@@ -64,24 +63,20 @@ class RouteUtils {
       const network = process.env.NETWORK
 
       // Return false if NETWORK is not defined.
-      if (!network || network === "") {
-        console.log("Warning: NETWORK environment variable is not defined!")
+      if (!network || network === "")
         return false
-      }
 
       // Convert the user-provided address to a cashaddress, for easy detection
       // of the intended network.
-      const cashAddr = this.bitbox.Address.toCashAddress(addr)
-
-      var addrIsTest = bitbox.Address.isRegTestAddress(cashAddr);
-      if (network === "regtest" && addrIsTest) return true;
+      const addrIsRegTest = this.bitbox.Address.isRegTestAddress(addr)
+      if (network === "regtest" && addrIsRegTest) return true
 
       // Return true if the network and address both match testnet
-      const addrIsTest = this.bitbox.Address.isTestnetAddress(cashAddr)
+      const addrIsTest = this.bitbox.Address.isTestnetAddress(addr)
       if (network === "testnet" && addrIsTest) return true
 
       // Return true if the network and address both match mainnet
-      const addrIsMain = this.bitbox.Address.isMainnetAddress(cashAddr)
+      const addrIsMain = this.bitbox.Address.isMainnetAddress(addr)
       if (network === "mainnet" && addrIsMain) return true
 
       return false
@@ -104,13 +99,15 @@ class RouteUtils {
         err.response.data &&
         err.response.data.error &&
         err.response.data.error.message
-      )
+      ){
+        console.log("Attempt to extract the full node error message")
         return { msg: err.response.data.error.message, status: 400 }
-
+}
       // Attempt to extract the Insight error message
-      if (err.response && err.response.data)
+      if (err.response && err.response.data){
+        console.log("Attempt to extract the Insight error message")
         return { msg: err.response.data, status: err.response.status }
-
+}
       // console.log(`err.message: ${err.message}`)
       // console.log(`err: `, err)
 

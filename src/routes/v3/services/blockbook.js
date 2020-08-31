@@ -34,6 +34,7 @@ class Blockbook {
 
       // Convert the address to a cashaddr without a prefix.
       const addr = _this.bitbox.Address.toCashAddress(thisAddress)
+      // PATNOTE to be delth with later
 
       const path = `${BLOCKBOOK_URL}api/v2/address/${addr}`
       // console.log(`path: ${path}`)
