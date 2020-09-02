@@ -144,7 +144,7 @@ async function detailsSingle(
 
     // Prevent a common user error. Ensure they are using the correct network address.
     const networkIsValid: boolean = routeUtils.validateNetwork(
-      Utils.toLegacyAddress(address)
+      address
     )
     if (!networkIsValid) {
       res.status(400)
@@ -154,10 +154,12 @@ async function detailsSingle(
     }
 
     // Query the Insight API.
+    console.log('QUERY')
     let retData: AddressDetailsInterface = await detailsFromInsight(
       address,
       currentPage
     )
+    console.log('RETDATA', retData)
 
     // Return the retrieved address information.
     res.status(200)
@@ -165,7 +167,9 @@ async function detailsSingle(
   } catch (err) {
     // Attempt to decode the error message.
     const { msg, status } = routeUtils.decodeError(err)
+    console.log('MSG', msg)
     if (msg) {
+      console.log('CONDITION PASSED')
       res.status(status)
       return res.json({ error: msg })
     }
@@ -223,7 +227,7 @@ async function detailsBulk(
 
       // Prevent a common user error. Ensure they are using the correct network address.
       const networkIsValid: boolean = routeUtils.validateNetwork(
-        Utils.toCashAddress(thisAddress)
+        thisAddress
       )
       if (!networkIsValid) {
         res.status(400)
@@ -232,7 +236,7 @@ async function detailsBulk(
         })
       }
     }
-
+    console.log("before addressPromises")
     // Loops through each address and creates an array of Promises, querying
     // Insight API in parallel.
     let addressPromises: Promise<AddressDetailsInterface>[] = addresses.map(
@@ -243,6 +247,7 @@ async function detailsBulk(
 
     // Wait for all parallel Insight requests to return.
     let result: AddressDetailsInterface[] = await Promise.all(addressPromises)
+    console.log('AddressDetailsInterface RESULT', result)
 
     // Return the array of retrieved address information.
     res.status(200)
@@ -252,6 +257,7 @@ async function detailsBulk(
     const { msg, status } = routeUtils.decodeError(err)
     if (msg) {
       res.status(status)
+      console.log("Network error:")
       return res.json({ error: msg })
     }
 
@@ -323,15 +329,18 @@ async function utxoSingle(
   res: express.Response,
   next: express.NextFunction
 ): Promise<express.Response> {
+  console.log('UTXOSINGLE')
   try {
     const address: string = req.params.address
     if (!address || address === "") {
+      console.log('REQ.PARAMS.ADDRESS', req.params.address)
       res.status(400)
       return res.json({ error: "address can not be empty" })
     }
 
     // Reject if address is an array.
     if (Array.isArray(address)) {
+      console.log("isArray")
       res.status(400)
       return res.json({
         error: "address can not be an array. Use POST for bulk upload."
@@ -345,6 +354,7 @@ async function utxoSingle(
     try {
       bitbox.Address.toLegacyAddress(address)
     } catch (err) {
+      console.log("toLegacyAddress")
       res.status(400)
       return res.json({
         error: `Invalid BCH address. Double check your address is valid: ${address}`
@@ -354,6 +364,7 @@ async function utxoSingle(
     // Prevent a common user error. Ensure they are using the correct network address.
     const networkIsValid: boolean = routeUtils.validateNetwork(address)
     if (!networkIsValid) {
+      console.log("validateNetwork")
       res.status(400)
       return res.json({
         error: `Invalid network. Trying to use a testnet address on mainnet, or vice versa.`
@@ -422,7 +433,8 @@ async function utxoBulk(
 
       // Prevent a common user error. Ensure they are using the correct network address.
       const networkIsValid: boolean = routeUtils.validateNetwork(
-        Utils.toCashAddress(thisAddress)
+        // Utils.toCashAddress(thisAddress)
+        thisAddress
       )
       if (!networkIsValid) {
         res.status(400)
@@ -454,6 +466,7 @@ async function utxoBulk(
   } catch (err) {
     // Attempt to decode the error message.
     const { msg, status } = routeUtils.decodeError(err)
+    console.log('MSG', msg)
     if (msg) {
       res.status(status)
       return res.json({ error: msg })
@@ -504,7 +517,8 @@ async function unconfirmedSingle(
 
     // Prevent a common user error. Ensure they are using the correct network address.
     const networkIsValid: boolean = routeUtils.validateNetwork(
-      Utils.toCashAddress(address)
+      // Utils.toCashAddress(address)
+      address
     )
     if (!networkIsValid) {
       res.status(400)
@@ -590,7 +604,8 @@ async function unconfirmedBulk(
 
       // Prevent a common user error. Ensure they are using the correct network address.
       const networkIsValid: boolean = routeUtils.validateNetwork(
-        Utils.toCashAddress(thisAddress)
+        // Utils.toCashAddress(thisAddress)
+        thisAddress
       )
       if (!networkIsValid) {
         res.status(400)
@@ -799,7 +814,8 @@ async function transactionsSingle(
 
     // Prevent a common user error. Ensure they are using the correct network address.
     const networkIsValid: boolean = routeUtils.validateNetwork(
-      Utils.toCashAddress(address)
+      // Utils.toCashAddress(address)
+      address
     )
     if (!networkIsValid) {
       res.status(400)

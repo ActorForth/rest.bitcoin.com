@@ -49,6 +49,7 @@ function validateNetwork(addr) {
   try {
     const network = process.env.NETWORK
 
+
     // Return false if NETWORK is not defined.
     if (!network || network === "") {
       console.log(`Warning: NETWORK environment variable is not defined!`)
@@ -57,17 +58,20 @@ function validateNetwork(addr) {
 
     // Convert the user-provided address to a cashaddress, for easy detection
     // of the intended network.
-    const cashAddr = Utils.toCashAddress(addr)
+    console.log('ADDR >', addr)
 
-    var addrIsTest = bitbox.Address.isRegTestAddress(cashAddr);
-    if (network === "regtest" && addrIsTest) return true;
+    const addrIsRegTest = bitbox.Address.isRegTestAddress(addr);
+    console.log('ADDRISREGTEST', addrIsRegTest)
+    console.log('NETWORK', network)
+    if (network === "regtest" && addrIsRegTest) {return true;
+    console.log('CONDITION PASSED')}
 
     // Return true if the network and address both match testnet
-    const addrIsTest = bitbox.Address.isTestnetAddress(cashAddr)
+    const addrIsTest = bitbox.Address.isTestnetAddress(addr)
     if (network === "testnet" && addrIsTest) return true
 
     // Return true if the network and address both match mainnet
-    const addrIsMain = bitbox.Address.isMainnetAddress(cashAddr)
+    const addrIsMain = bitbox.Address.isMainnetAddress(addr)
     if (network === "mainnet" && addrIsMain) return true
 
     return false

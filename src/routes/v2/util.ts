@@ -105,6 +105,7 @@ async function validateAddressBulk(
       // Prevent a common user error. Ensure they are using the correct network address.
       const networkIsValid: boolean = routeUtils.validateNetwork(address)
       if (!networkIsValid) {
+        console.log("Prevent a common user error.")
         res.status(400)
         return res.json({
           error: `Invalid network. Trying to use a testnet address on mainnet, or vice versa.`

@@ -436,6 +436,7 @@ async function balancesForAddressSingle(
       utils.toCashAddress(address)
     } catch (err) {
       res.status(400)
+      console.log("Ensure the input is a valid BCH address")
       return res.json({
         error: `Invalid BCH address. Double check your address is valid: ${address}`
       })
@@ -443,7 +444,9 @@ async function balancesForAddressSingle(
 
     // Prevent a common user error. Ensure they are using the correct network address.
     const cashAddr: string = utils.toCashAddress(address)
+    console.log('CASHADDR', cashAddr)
     const networkIsValid: boolean = routeUtils.validateNetwork(cashAddr)
+    console.log('NETWORKISVALID', networkIsValid)
     if (!networkIsValid) {
       res.status(400)
       return res.json({
