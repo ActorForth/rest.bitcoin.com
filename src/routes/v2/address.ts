@@ -19,6 +19,8 @@ const bitbox: BITBOX = new BITBOX()
 const SLPSDK: any = require("slp-sdk")
 const SLP: any = new SLPSDK()
 let Utils = SLP.slpjs.Utils
+const BCHJS = require('bch-js-reg')
+const bchjs = new BCHJS()
 
 // Used for processing error messages before sending them to the user.
 util.inspect.defaultOptions = { depth: 1 }
@@ -30,6 +32,8 @@ const PAGE_SIZE: number = 1000
 const axiosTimeOut = axios.create({
   timeout: 15000
 })
+
+const isRegtest = (process.env.NETWORK == 'regtest');
 
 // Connect the route endpoints to their handler functions.
 router.get("/", root)
@@ -85,8 +89,9 @@ async function detailsFromInsight(
 
     // Append different address formats to the return data.
     retData.legacyAddress = bitbox.Address.toLegacyAddress(retData.addrStr)
-    retData.cashAddress = bitbox.Address.toCashAddress(retData.addrStr)
-    retData.slpAddress = Utils.toSlpAddress(retData.cashAddress)
+    retData.cashAddress = bitbox.Address.toCashAddress(retData.addrStr,true, isRegtest)
+    retData.slpAddress = bchjs.SLP.Address.toSLPAddress(retData.cashAddress, true, isRegtest)
+
     delete retData.addrStr
 
     // Append pagination information to the return data.
@@ -154,12 +159,10 @@ async function detailsSingle(
     }
 
     // Query the Insight API.
-    console.log('QUERY')
     let retData: AddressDetailsInterface = await detailsFromInsight(
       address,
       currentPage
     )
-    console.log('RETDATA', retData)
 
     // Return the retrieved address information.
     res.status(200)
@@ -167,9 +170,7 @@ async function detailsSingle(
   } catch (err) {
     // Attempt to decode the error message.
     const { msg, status } = routeUtils.decodeError(err)
-    console.log('MSG', msg)
     if (msg) {
-      console.log('CONDITION PASSED')
       res.status(status)
       return res.json({ error: msg })
     }
@@ -236,7 +237,6 @@ async function detailsBulk(
         })
       }
     }
-    console.log("before addressPromises")
     // Loops through each address and creates an array of Promises, querying
     // Insight API in parallel.
     let addressPromises: Promise<AddressDetailsInterface>[] = addresses.map(
@@ -247,7 +247,6 @@ async function detailsBulk(
 
     // Wait for all parallel Insight requests to return.
     let result: AddressDetailsInterface[] = await Promise.all(addressPromises)
-    console.log('AddressDetailsInterface RESULT', result)
 
     // Return the array of retrieved address information.
     res.status(200)
@@ -257,7 +256,6 @@ async function detailsBulk(
     const { msg, status } = routeUtils.decodeError(err)
     if (msg) {
       res.status(status)
-      console.log("Network error:")
       return res.json({ error: msg })
     }
 
@@ -304,8 +302,8 @@ async function utxoFromInsight(
       retData.asm = bitbox.Script.toASM(scriptSigBuffer)
     }
     retData.legacyAddress = Utils.toLegacyAddress(thisAddress)
-    retData.cashAddress = Utils.toCashAddress(thisAddress)
-    retData.slpAddress = Utils.toSlpAddress(retData.cashAddress)
+    retData.cashAddress = bitbox.Address.toCashAddress(thisAddress, true, isRegtest)
+    retData.slpAddress = bchjs.SLP.Address.toSLPAddress(retData.cashAddress, true, isRegtest)
     retData.utxos = response.data.map(
       (utxo: UTXOsInterface): UTXOsInterface => {
         delete utxo.address
@@ -329,18 +327,15 @@ async function utxoSingle(
   res: express.Response,
   next: express.NextFunction
 ): Promise<express.Response> {
-  console.log('UTXOSINGLE')
   try {
     const address: string = req.params.address
     if (!address || address === "") {
-      console.log('REQ.PARAMS.ADDRESS', req.params.address)
       res.status(400)
       return res.json({ error: "address can not be empty" })
     }
 
     // Reject if address is an array.
     if (Array.isArray(address)) {
-      console.log("isArray")
       res.status(400)
       return res.json({
         error: "address can not be an array. Use POST for bulk upload."
@@ -354,7 +349,6 @@ async function utxoSingle(
     try {
       bitbox.Address.toLegacyAddress(address)
     } catch (err) {
-      console.log("toLegacyAddress")
       res.status(400)
       return res.json({
         error: `Invalid BCH address. Double check your address is valid: ${address}`
@@ -364,7 +358,6 @@ async function utxoSingle(
     // Prevent a common user error. Ensure they are using the correct network address.
     const networkIsValid: boolean = routeUtils.validateNetwork(address)
     if (!networkIsValid) {
-      console.log("validateNetwork")
       res.status(400)
       return res.json({
         error: `Invalid network. Trying to use a testnet address on mainnet, or vice versa.`
@@ -466,7 +459,6 @@ async function utxoBulk(
   } catch (err) {
     // Attempt to decode the error message.
     const { msg, status } = routeUtils.decodeError(err)
-    console.log('MSG', msg)
     if (msg) {
       res.status(status)
       return res.json({ error: msg })
@@ -676,7 +668,7 @@ async function transactionsFromInsight(
     // Append different address formats to the return data.
     const retData: TransactionsInterface = response.data
     retData.legacyAddress = bitbox.Address.toLegacyAddress(thisAddress)
-    retData.cashAddress = bitbox.Address.toCashAddress(thisAddress)
+    retData.cashAddress = bitbox.Address.toCashAddress(thisAddress,true, isRegtest)
     retData.currentPage = currentPage
 
     return retData
@@ -877,7 +869,7 @@ async function fromXPubSingle(
 
     let cashAddr: string = bitbox.Address.fromXPub(xpub, hdPath)
     let legacyAddr: string = bitbox.Address.toLegacyAddress(cashAddr)
-    let slpAddr: string = SLP.Address.toSLPAddress(cashAddr)
+    let slpAddr: string = bchjs.SLP.Address.toSLPAddress(cashAddr, true, isRegtest)
     res.status(200)
     return res.json({
       cashAddress: cashAddr,
