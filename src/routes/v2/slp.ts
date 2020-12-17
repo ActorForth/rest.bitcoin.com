@@ -283,12 +283,10 @@ async function listSingleToken(
     const s: string = JSON.stringify(query)
     const b64: string = Buffer.from(s).toString("base64")
     const url: string = `${process.env.SLPDB_URL}q/${b64}`
-    console.log('URL', url)
 
     const options = generateCredentials()
 
     const tokenRes: AxiosResponse = await axios.get(url, options)
-    console.log('TOKENRES', tokenRes)
 
     let token
     if (tokenRes.data.t.length) {
@@ -334,7 +332,6 @@ async function listBulkToken(
   next: express.NextFunction
 ): Promise<express.Response> {
   try {
-    console.log("listBulkToken")
     const tokenIds: string[] = req.body.tokenIds
 
     // Reject if tokenIds is not an array.
@@ -384,12 +381,10 @@ async function listBulkToken(
     const s: string = JSON.stringify(query)
     const b64: string = Buffer.from(s).toString("base64")
     const url: string = `${process.env.SLPDB_URL}q/${b64}`
-    console.log('URL', url)
 
     const options = generateCredentials()
 
     const tokenRes: AxiosResponse = await axios.get(url, options)
-    console.log('TOKENRES', tokenRes)
 
     const formattedTokens: any[] = []
     const txids: string[] = []
@@ -453,9 +448,7 @@ async function balancesForAddressSingle(
 
     // Prevent a common user error. Ensure they are using the correct network address.
     const cashAddr: string = utils.toCashAddress(address)
-    console.log('CASHADDR', cashAddr)
     const networkIsValid: boolean = routeUtils.validateNetwork(cashAddr)
-    console.log('NETWORKISVALID', networkIsValid)
     if (!networkIsValid) {
       res.status(400)
       return res.json({
