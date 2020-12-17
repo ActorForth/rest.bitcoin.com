@@ -34,9 +34,13 @@ const SLPSDK: any = require("slp-sdk")
 const SLP: any = new SLPSDK()
 const slp: any = SLP.slpjs
 const utils: any = slp.Utils
+const BCHJS = require('bch-js-reg')
+const bchjs = new BCHJS()
 
 // TODO: Use SLP Java Indexer when set and available
 const slpDataService: ISlpData = process.env.USE_SLPDB ? new Slpdb() : new Slpdb()
+
+const isRegtest = (process.env.NETWORK == 'regtest');
 
 // Used to convert error messages to strings, to safely pass to users.
 util.inspect.defaultOptions = { depth: 5 }
@@ -444,9 +448,7 @@ async function balancesForAddressSingle(
 
     // Prevent a common user error. Ensure they are using the correct network address.
     const cashAddr: string = utils.toCashAddress(address)
-    console.log('CASHADDR', cashAddr)
     const networkIsValid: boolean = routeUtils.validateNetwork(cashAddr)
-    console.log('NETWORKISVALID', networkIsValid)
     if (!networkIsValid) {
       res.status(400)
       return res.json({
@@ -2179,7 +2181,7 @@ const processInputs = (tx: TransactionInterface): any => {
         const address: string = vin.addr
         if (address) {
           vin.legacyAddress = bitbox.Address.toLegacyAddress(address)
-          vin.cashAddress = bitbox.Address.toCashAddress(address)
+          vin.cashAddress = bitbox.Address.toCashAddress(address, true, isRegtest)
           delete vin.addr
         }
         delete vin.valueSat
@@ -2198,7 +2200,7 @@ const processInputs = (tx: TransactionInterface): any => {
         if (vout.scriptPubKey.addresses) {
           const cashAddrs: string[] = []
           vout.scriptPubKey.addresses.forEach((addr: any) => {
-            const cashAddr = bitbox.Address.toCashAddress(addr)
+            const cashAddr = bitbox.Address.toCashAddress(addr, true, isRegtest)
             cashAddrs.push(cashAddr)
           })
           vout.scriptPubKey.cashAddrs = cashAddrs
